@@ -1,0 +1,25 @@
+#!/bin/sh
+#Filename: /etc/init.d/cpdm_client_service
+
+# The following part always gets executed.
+echo "CPDM Service"
+
+# The following part carries out specific functions depending on arguments.
+case "$1" in
+start)
+echo "CPDM Service - STARTED"
+# if this file continously outputs to the shell, you should smake it be quiet with > /dev/null and 2> /dev/null
+# if it needs to report anything, have it save logs to /var/log (like i do with it to /var/log/monitor-cron.log)
+/opt/cpdm/client/cpdm_client_run 2> /dev/null > /dev/null &
+;;
+stop)
+echo "CPDM Servicee - STOPPED"
+killall cpdm_client_run
+;;
+*)
+echo "Usage: /etc/init.d/cpdm_client_service {start|stop}"
+exit 1
+;;
+esac
+
+exit 0

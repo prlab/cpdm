@@ -1,0 +1,3 @@
+#!/bin/bash
+
+python /opt/cpdm/client/cpdm_client.py >> /opt/cpdm/log/cpdm_client.log
