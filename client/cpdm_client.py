@@ -2,6 +2,7 @@ import ConfigParser
 import json
 import logging
 from datetime import date
+import datetime
 import pika
 import time
 import sys
@@ -44,7 +45,9 @@ def startnewanalysis(ch, method, properties, body):
         sys.exit()
 
     network_data = sio.loadmat(network_path)
-    start = time.time()
+    #start = time.clock()
+    start = (datetime.datetime.now()-datetime.datetime(1970,1,1)).total_seconds()
+    print start
     logging.info("{}\tA new job is starting. We will process {} seed proteins at {} parallel processes".format(data['jobid'],seeds_number,processes_number))
     #start parallel analysis
     pool = multiprocessing.Pool(processes_number)
@@ -60,7 +63,8 @@ def startnewanalysis(ch, method, properties, body):
     output = [result[0] for result in results]
     seeds = [result[1] for result in results]
     starts = [result[2] for result in results]
-    duration = time.time()-start
+    end = (datetime.datetime.now()-datetime.datetime(1970,1,1)).total_seconds()
+    duration = end - start
     results_array = []
 
 
@@ -77,6 +81,8 @@ def startnewanalysis(ch, method, properties, body):
         'seeds_number': seeds_number,
         'processes_number': processes_number,
         'duration': duration,
+        'start': start,
+        'end': end,
         'results': results_array
     }
     output_path = "{}/{}/out.json".format(config.get("general", "nfspath"),data['jobid'])
@@ -94,6 +100,7 @@ def init():
     Initialize config parser, logging and start queue consuming
     :return:
     """
+    time.sleep(20)    
     # Connect to Rabbit Mq and listen
     credentials = pika.PlainCredentials(config.get("general", "rabbitmquser"), config.get("general", "rabbitmqpwd"))
     parameters = pika.ConnectionParameters(config.get("general", "rabbitmqip"),
