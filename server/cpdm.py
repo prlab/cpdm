@@ -95,10 +95,13 @@ def mainFlow(seeds_file,networkfile):
         process_result = json.load(of)
 
 
-    print "Analysis was finished in {} secs".format(time.time()-start)
+    print "Analysis Job ID: {}".format(process_result['jobid'])
+    print "Analysis was finished in {} secs".format(process_result['duration'])
+    print "Parralel job searched for {} seeds utilizing {} CPUs".format(process_result['seeds_number'],process_result['processes_number'])
     print "Results: "
-    for protein in process_result:
+    for protein in process_result['results']:
         print "Seed Protein: {}, Number of neighbours: {}, subgraph: {}".format(protein['protein'],protein['neighbours'],protein['subgraph'])
+    print "To see the json result file type: $ cat {}".format(output_file)
 
     #step 6: destroy VM
     destroyVM = CSApi.destroyVM(newvm['deployvirtualmachineresponse']['id'], True, config)

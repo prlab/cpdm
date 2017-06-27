@@ -3,7 +3,7 @@ import json
 import logging
 from datetime import date
 import pika
-
+import time
 import sys
 
 import cpdm_client_functions as CCF
@@ -33,7 +33,7 @@ def startnewanalysis(ch, method, properties, body):
     seeds_number = len(seeds_proteins)
 
     #calculate number of processes
-    processes_number = (multiprocessing.cpu_count()-1)
+    processes_number = (multiprocessing.cpu_count())
     if processes_number >= seeds_number:
         processes_number = seeds_number
 
@@ -44,7 +44,7 @@ def startnewanalysis(ch, method, properties, body):
         sys.exit()
 
     network_data = sio.loadmat(network_path)
-
+    start = time.time()
     logging.info("{}\tA new job is starting. We will process {} seed proteins at {} parallel processes".format(data['jobid'],seeds_number,processes_number))
     #start parallel analysis
     pool = multiprocessing.Pool(processes_number)
@@ -60,8 +60,9 @@ def startnewanalysis(ch, method, properties, body):
     output = [result[0] for result in results]
     seeds = [result[1] for result in results]
     starts = [result[2] for result in results]
-
+    duration = time.time()-start
     results_array = []
+
 
     for i in range(len(seeds_proteins)):
         results_seed = {
@@ -71,10 +72,17 @@ def startnewanalysis(ch, method, properties, body):
         }
         results_array.append(results_seed)
 
+    all_results = {
+        'jobid': data['jobid'],
+        'seeds_number': seeds_number,
+        'processes_number': processes_number,
+        'duration': duration,
+        'results': results_array
+    }
     output_path = "{}/{}/out.json".format(config.get("general", "nfspath"),data['jobid'])
 
     with open(output_path,"w") as output_file:
-        json.dump(results_array,output_file)
+        json.dump(all_results,output_file)
 
     logging.info("{}\tJob finished".format(data['jobid']))
     sys.exit()
